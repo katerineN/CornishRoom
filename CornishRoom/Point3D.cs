@@ -66,7 +66,8 @@ namespace CornishRoom
         {
             return new Point3D(p1.Y * p2.Z - p1.Z * p2.Y, p1.Z * p2.X - p1.X * p2.Z, p1.X * p2.Y - p1.Y * p2.X);
         }
-
+        
+        
         public static Point3D operator *(float t, Point3D p1)
         {
             return new Point3D(p1.X * t, p1.Y * t, p1.Z * t);
