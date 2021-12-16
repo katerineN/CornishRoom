@@ -17,14 +17,18 @@ namespace CornishRoom
         //перемножение матриц
         public static float[,] MultMatrix(float[,] m1, float[,] m2)
         {
-            float[,] res = new float[m1.GetLength(0), m2.GetLength(1)];
+            int r1 = m1.GetLength(0);
+            int c1 = m1.GetLength(1);
+            int r2 = m2.GetLength(0);
+            int c2 = m2.GetLength(1);
+            float[,] res = new float[r1, c2];
 
-            for (int i = 0; i < m1.GetLength(0); ++i)
-            for (int j = 0; j < m2.GetLength(1); ++j)
-            for (int k = 0; k < m2.GetLength(0); k++)
-            {
-                res[i, j] += m1[i, k] * m2[k, j];
-            }
+            for (int i = 0; i < r1; ++i)
+                for (int j = 0; j < c2; ++j)
+                    for (int k = 0; k < r2; k++)
+                    {
+                        res[i, j] += m1[i, k] * m2[k, j];
+                    }
 
             return res;
         }
@@ -39,32 +43,32 @@ namespace CornishRoom
 
         // получение всех пикселей сцены
         public Point3D[,] GetPixels(Figure room)
-        {
-            /*
-             Учитывая разницу между размером комнаты и экранным отображение приводим координаты к пикселям
-             */
-            Point3D up_left = room.points[room.faces[0].facePoints[0]];
-            Point3D up_right = room.points[room.faces[0].facePoints[1]];
-            Point3D down_right = room.points[room.faces[0].facePoints[2]];
-            Point3D down_left = room.points[room.faces[0].facePoints[3]];
+        { 
+            //Учитывая разницу между размером комнаты и экранным отображение приводим координаты к пикселям
+            //точки стены у наблюдателя
+            Point3D upLeft = room.points[room.faces[0].facePoints[0]];
+            Point3D upRight = room.points[room.faces[0].facePoints[1]];
+            Point3D downRight = room.points[room.faces[0].facePoints[2]];
+            Point3D downLeft = room.points[room.faces[0].facePoints[3]];
             Point3D [,] pixels = new Point3D[width, height];
-            Point3D step_up = (up_right - up_left) / (width - 1);//отношение ширины комнаты к ширине экрана
-            Point3D step_down = (down_right - down_left) / (width - 1);//отношение высоты комнаты к высоте экрана
-            Point3D up = up_left;
-            Point3D down = down_left;
+            //отношение ширины комнаты к ширине пикчербокса
+            Point3D stepUp = (upRight - upLeft) / (width - 1);
+            //отношение высоты комнаты к высоте пикчербокса
+            Point3D stepDown = (downRight - downLeft) / (width - 1);
+            Point3D up = upLeft;
+            Point3D down = downLeft;
             for (int i = 0; i < width; ++i)
             {
-                Point3D step_y = (up - down) / (height - 1);
+                Point3D stepY = (up - down) / (height - 1);
                 Point3D d = down;
                 for (int j = 0; j < height; ++j)
                 {
                     pixels[i, j] = d;
-                    d += step_y;
+                    d += stepY;
                 }
-                up += step_up;
-                down += step_down;
+                up += stepUp;
+                down += stepDown;
             }
-
             return pixels;
         }
         
@@ -73,21 +77,49 @@ namespace CornishRoom
             //сама комната
             Figure room = new Cube(10, new Material(0, 0, 0.05f, 0.7f), Type.Room);
             room.SetPen(new Pen(Color.Gray));
-            room.faces[0].pen = new Pen(Color.Green);
-            room.faces[1].pen = new Pen(Color.Yellow);
-            room.faces[2].pen = new Pen(Color.Red);
-            room.faces[3].pen = new Pen(Color.Blue);
+            room.faces[0].pen = new Pen(Color.Chartreuse);
+            room.faces[1].pen = new Pen(Color.White);
+            room.faces[2].pen = new Pen(Color.CornflowerBlue);
+            room.faces[3].pen = new Pen(Color.Red);
             
-            Figure bigCube = new Cube(4.8f,new Material(0f, 0f, 0.1f, 0.7f, 1.5f), Type.Cube);
-            bigCube.Offset(-1.5f, 1.5f, -3.9f);
-            bigCube.SetPen(new Pen(Color.Magenta));
+            //маленький кубик
+            Figure miniCube = new Cube(1.8f,new Material(0f, 0f, 0.1f, 0.7f, 1.5f), Type.Cube);
+            miniCube.Offset(-3.7f, -2.5f, -4.1f);
+            miniCube.SetPen(new Pen(Color.Magenta));
+            
+            //кубик побольше
+            //Figure bigCube = new Cube(3f,new Material(0f, 0f, 0.1f, 0.7f, 1.5f), Type.Cube);
+            //кубик побольше зеркальный
+            Figure bigCube = new Cube(3f,new Material(0.9f, 0f, 0f, 0.1f, 1f), Type.Cube);
+            //типа прозрачный
+            //Figure bigCube = new Cube(3f,new Material(0f, 1f, 0f, 0.1f, 0.5f), Type.Cube);
+            bigCube.Offset(2f, 1.5f, -4.1f);
+            //bigCube.RotateArondRad(70);
+            bigCube.SetPen(new Pen(Color.Aqua));
+            
+            //шарик
+            //Figure sphere = new Sphere(new Point3D(-2.5f, -2, 2.5f), 2.5f,
+              //  new Material(0.9f, 0.1f, 0.7f, 0.1f, new Point3D(0f, 0f, 0f), 1f),
+              //  Type.Sphere);
+           //шар над кубом   
+           //Figure sphere = new Sphere(new Point3D(2f, 1.5f, -1.5f), 1.5f,
+             //   new Material(0f, 0f, 0.1f, 0.7f, 1.5f),
+             //   Type.Sphere);
+             //Сфера справа от большого куба на полу
+           Figure sphere = new Sphere(new Point3D(-1.8f, 1.5f, -3.6f), 1.5f,
+               new Material(0f, 0f, 0.1f, 0.7f, 1.5f),
+               Type.Sphere);
+            sphere.SetPenSphere(new Pen(Color.Violet));
             
             //добавляем источники света
-            Light l1 = new Light(new Point3D(0f, 2f, 4.9f), new Point3D(1f, 1f, 1f));//белый, посреди комнаты,как люстра
+            Light l1 = new Light(new Point3D(0f, 2f, 4.9f), new Point3D(1f, 1f, 1f));
+            //Light l1 = new Light(new Point3D(-1.2f, 4f, 4.9f), new Point3D(1f, 1f, 1f));
             
             Scene scene = new Scene();
             scene.addFigure(room);
+            scene.addFigure(miniCube);
             scene.addFigure(bigCube);
+            scene.addFigure(sphere);
             scene.Light = l1;
 
             pictureBox1.Image = RayTracing.BackwardRayTracing(GetPixels(room), scene, width, height);

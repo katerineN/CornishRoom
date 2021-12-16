@@ -8,12 +8,12 @@ namespace CornishRoom
     {
         //позиция источника света
         public Point3D position;       
-        public Point3D intensive; 
+        public Point3D color; 
 
-        public Light(Point3D p, Point3D i)
+        public Light(Point3D p, Point3D c)
         {
             position = p;
-            intensive = i;
+            color = c;
         }
         
         
@@ -48,7 +48,7 @@ namespace CornishRoom
             //направление луча
             Point3D dir = Point3D.Normalize(position - reachPoint);
             //если угол между нормалью и направлением луча больше 90 градусов,то диффузное  освещение равно 0
-            Point3D diff = diffuseRatio * intensive * Math.Max(Point3D.Scalar(normal, dir), 0);
+            Point3D diff = diffuseRatio * color * Math.Max(Point3D.Scalar(normal, dir), 0);
             return new Point3D(diff.X * material.X, diff.Y * material.Y, diff.Z * material.Z);
         }
     }

@@ -99,19 +99,55 @@ namespace CornishRoom
             return res;
         }
         
-        //видима ли точка пересечения луча с фигурой из источника света
-        public static bool IsVisible(Point3D light_point, Point3D hit_point, Scene scene)
+        
+        /// <summary>
+        /// Проверяем видна ли точка пересечения луча с фигурой из источника света
+        /// </summary>
+        /// <param name="light">источник освещения</param>
+        /// <param name="reachPoint"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        public static bool IsVisible(Light light, Point3D reachPoint, Scene scene)
         {
-            float max_t = (light_point - hit_point).Length();
-            Ray r = new Ray(hit_point, light_point);
+            float length = (light.position - reachPoint).Length();
+            Ray ray = new Ray(reachPoint, light.position);
             foreach (Figure fig in scene.figures)
-                if (fig.Intersection(r, out float t, out Point3D n))
-                    if (t < max_t && t > Figure.eps)
+            {
+                if (fig.Intersection(ray, out float t, out Point3D n))
+                    //смотрим на луч
+                    //если точка t ближе к источнику освещения чем length, то точка не видна, ее закрывает фигура
+                    if (t < length && t > Figure.eps)
                         return false;
+            }
+
             return true;
         }
-        
-        public 
+
+        /// <summary>
+        /// Находит ближайшую фигуру
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="r"></param>
+        /// <param name="normal"></param>
+        /// <param name="material"></param>
+        /// <returns>возвращает точку пересечения</returns>
+        public static float FindClosestFigure(Scene scene, Ray r, out Point3D normal, out Material material)
+        {
+            float intersectionPoint = 0;
+            normal = null;
+            material = new Material();
+            foreach (Figure f in scene.figures)
+            {
+                if (f.Intersection(r, out float intersect, out Point3D norm))
+                    if (intersect < intersectionPoint || intersectionPoint == 0)
+                    {
+                        intersectionPoint = intersect;
+                        normal = norm;
+                        material = new Material(f.figureMaterial);
+                    }
+            }
+            return intersectionPoint;
+        }
         
         /// <summary>
         /// Сам алгоритм трассировки
@@ -124,72 +160,76 @@ namespace CornishRoom
         {
             if (iter <= 0)
                 return new Point3D(0, 0);
-            //
+            //позиция точки пересечения на луче
             float intersectionPoint = 0;
             //нормаль грани фигуры, с которым произошло пересечение луча
             Point3D normal = null;
             Material material = new Material();
+            //итоговый цвет пикселя
             Point3D color = new Point3D(0, 0);
           
             //угол падения острый
             bool refractFigure = false;
 
-            foreach (Figure fig in scene.figures)
-            {
-                if (fig.Intersection(ray, out float intersect, out Point3D norm))
-                    //ищем ближайшую фигуру к точке наблюдения
-                    if (intersect < intersectionPoint || intersectionPoint == 0)// нужна ближайшая фигура к точке наблюдения
-                    {
-                        intersectionPoint = intersect;
-                        normal = norm;
-                        material = new Material(fig.figureMaterial);
-                    }
-            }
-
-            if (intersectionPoint == 0)//если не пересекается с фигурой
-                return new Point3D(0, 0, 0);//Луч уходит в свободное пространство .Возвращаем значение по умолчанию
-
+            intersectionPoint = FindClosestFigure(scene, ray, out normal, out material);
             
+            //если не пересекается с фигурой
+            //значит луч ушел в свободное плавание
+            if (intersectionPoint == 0)
+                return new Point3D(0, 0);
+
+            //если острый угол между направление луча и нормалью стороны
+            //определяем из какой среды в какую
             if (Point3D.Scalar(ray.direction, normal) > 0)
             {
                 normal *= -1;
                 refractFigure = true;
             }
 
-
             //Точка пересечения луча с фигурой
-            Point3D hit_point = ray.start + ray.direction * intersectionPoint;
+            Point3D reachPoint = ray.start + ray.direction * intersectionPoint;
             
-            Point3D ambient_coef = scene.Light.intensive * material.ambient;
-            ambient_coef.X = (ambient_coef.X * material.color.X);
-            ambient_coef.Y = (ambient_coef.Y * material.color.Y);
-            ambient_coef.Z = (ambient_coef.Z * material.color.Z);
-            color += ambient_coef;
+            //из презентации 
+            //В точке пересечения луча с объектом строится три вторичных 
+            //луча – один в направлении отражения (1), второй – в направлении 
+            //источника света (2), третий в направлении преломления 
+            //прозрачной поверхностью (3)
+            
+            //работаем с источником света
+            //фоновый цвет
+            Point3D ambientRatio= scene.Light.color * material.ambient;
+            ambientRatio = new Point3D(ambientRatio.X * material.color.X, ambientRatio.Y * material.color.Y,
+                ambientRatio.Z * material.color.Z);
+            color += ambientRatio;
             // диффузное освещение
-            if (IsVisible(scene.Light.position, hit_point, scene))//если точка пересечения луча с объектом видна из источника света
-                color += scene.Light.Shade(hit_point, normal, material.color, material.diffuse);
+            //если точка пересечения луча с объектом видна из источника света
+            if (IsVisible(scene.Light, reachPoint, scene))
+                color += scene.Light.Shade(reachPoint, normal, material.color, material.diffuse);
 
+            //Для отраженного луча проверяется возможность пересечения с другими объектами сцены.
+            //Если пересечений нет, то интенсивность и цвет отраженного луча равна интенсивности и цвету фона.
+            //Если пересечение есть, то в новой точке снова строится три типа лучей – теневые, отражения и преломления. 
             if (material.reflection > 0)
             {
-                Ray reflected_ray = ray.Reflect(hit_point, normal);
-                color += material.reflection * RayTracingOn(reflected_ray, iter - 1, scene);
+                Ray reflectionRay = ray.Reflect(reachPoint, normal);
+                color += material.reflection * RayTracingOn(reflectionRay, iter - 1, scene);
             }
 
-
+            //проверяется пересечение вновь построенного луча с объектами, и, если они есть, в новой 
+            //точке строятся три луча, если нет –используется интенсивность и цвет фона.
             if (material.refraction > 0)
             {
-                
-                float refract_coef;
+                //коэффициент преломления
+                float refractRatio;
+                //если угол острый получился, то
                 if (refractFigure)
-                    refract_coef = material.environment;
+                    refractRatio = material.environment;
                 else
-                    refract_coef = 1 / material.environment;
+                    refractRatio = 1 / material.environment;
 
-                Ray refracted_ray = ray.Refract(hit_point, normal, material.refraction, refract_coef);//создаем приломленный луч
-
-                
-                if (refracted_ray != null)
-                    color += material.refraction * RayTracingOn(refracted_ray, iter - 1, scene);
+                Ray transparencyRay = ray.Refract(reachPoint, normal, material.refraction, refractRatio);
+                if (transparencyRay != null)
+                    color += material.refraction * RayTracingOn(transparencyRay, iter - 1, scene);
             }
             if (color.X > 1.0f || color.Y > 1.0f || color.Z > 1.0f)
                 color = Point3D.Normalize(color);
