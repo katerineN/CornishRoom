@@ -1,0 +1,7 @@
+﻿namespace CornishRoom
+{
+    public class 
+    {
+        
+    }
+}

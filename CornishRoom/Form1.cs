@@ -12,7 +12,7 @@ namespace CornishRoom
 {
     public partial class Form1 : Form
     {
-        public Color[,] pixelsColor;
+       
         public int width, height;
         //перемножение матриц
         public static float[,] MultMatrix(float[,] m1, float[,] m2)
@@ -48,7 +48,6 @@ namespace CornishRoom
             Point3D down_right = room.points[room.faces[0].facePoints[2]];
             Point3D down_left = room.points[room.faces[0].facePoints[3]];
             Point3D [,] pixels = new Point3D[width, height];
-            pixelsColor = new Color[width, height];
             Point3D step_up = (up_right - up_left) / (width - 1);//отношение ширины комнаты к ширине экрана
             Point3D step_down = (down_right - down_left) / (width - 1);//отношение высоты комнаты к высоте экрана
             Point3D up = up_left;
@@ -91,15 +90,8 @@ namespace CornishRoom
             scene.addFigure(bigCube);
             scene.Light = l1;
 
-            pixelsColor = RayTracing.BackwardRayTracing(GetPixels(room), pixelsColor, scene, width, height);
-            
-            for (int i = 0; i < width; ++i){
-                for (int j = 0; j < height; ++j)
-                {
-                    (pictureBox1.Image as Bitmap).SetPixel(i, j, pixelsColor[i, j]);
-                }
-                pictureBox1.Invalidate();
-            }
+            pictureBox1.Image = RayTracing.BackwardRayTracing(GetPixels(room), scene, width, height);
+            pictureBox1.Invalidate();
         }
     }
 }

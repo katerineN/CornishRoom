@@ -76,7 +76,17 @@ namespace CornishRoom
         //материал фигуры
         public Material figureMaterial;
         
-        //пересечение луча и треугольника
+        
+        /// <summary>
+        /// Пересечение луча с треугольником
+        /// https://question-it.com/questions/717402/kak-najti-tochku-peresechenija-lucha-i-treugolnika
+        /// </summary>
+        /// <param name="r">Луч</param>
+        /// <param name="p0">Точка треугольника</param>
+        /// <param name="p1">Еще точка</param>
+        /// <param name="p2">Еще точка</param>
+        /// <param name="intersect">Пересечение</param>
+        /// <returns>Есть ли пересечение???</returns>
         public bool RayTriangleIntersection(Ray r, Point3D p0, Point3D p1, Point3D p2, out float intersect)
         {
             intersect = -1;
@@ -110,43 +120,53 @@ namespace CornishRoom
                 intersect = t;
                 return true;
             }
-            else      //Это означает, что есть пересечение линий, но не пересечение лучей
+            //Если мы тут, то значит есть пересечение линий, а не лучей
+            else      
                 return false;
         }
-        
-        // пересечение луча с фигурой
-        public virtual bool Intersection(Ray r, out float intersect, out Point3D normal)
+
+        /// <summary>
+        /// Ищет пересечение луча с фигурой
+        /// </summary>
+        /// <param name="r">луч</param>
+        /// <param name="intersect">точка пересечения</param>
+        /// <param name="normal">нормаль стороны</param>
+        /// <returns>Есть ли пересечение</returns>
+        public bool Intersection(Ray r, out float intersect, out Point3D normal)
         {
             intersect = 0;
             normal = null;
             Face f = null;
+            //просматриваем каждую сторону
             foreach (Face face in faces)
             {
-                //треугольная сторона
-                if (face.facePoints.Count == 3)
+                switch (face.facePoints.Count)
                 {
-                    if (RayTriangleIntersection(r, points[face.facePoints[0]], points[face.facePoints[1]], points[face.facePoints[2]], out float t) && (intersect == 0 || t < intersect))
-                    {
-                        intersect = t;
-                        f = face;
-                    }
-                }
+                    case 3:
+                        if (RayTriangleIntersection(r, points[face.facePoints[0]], points[face.facePoints[1]], points[face.facePoints[2]], out float t) && (intersect == 0 || t < intersect))
+                        {
+                            intersect = t;
+                            f = face;
+                        }
 
-                //четырехугольная сторона
-                else if (face.facePoints.Count == 4)
-                {
-                    if (RayTriangleIntersection(r, points[face.facePoints[0]], points[face.facePoints[1]], points[face.facePoints[3]], out float t) && (intersect == 0 || t < intersect))
-                    {
-                        intersect = t;
-                        f = face;
-                    }
-                    else if (RayTriangleIntersection(r, points[face.facePoints[1]], points[face.facePoints[2]], points[face.facePoints[3]], out t) && (intersect == 0 || t < intersect))
-                    {
-                        intersect = t;
-                        f = face;
-                    }
+                        break;
+                    case 4:
+                        //разбиваем на 2 треугольника четырехугольник
+                        if (RayTriangleIntersection(r, points[face.facePoints[0]], points[face.facePoints[1]], points[face.facePoints[3]], out float t1) && (intersect == 0 || t1 < intersect))
+                        {
+                            intersect = t1;
+                            f = face;
+                        }
+                        else if (RayTriangleIntersection(r, points[face.facePoints[1]], points[face.facePoints[2]], points[face.facePoints[3]], out float t2) && (intersect == 0 || t2 < intersect))
+                        {
+                            intersect = t2;
+                            f = face;
+                        }
+
+                        break;
                 }
             }
+            //если нашли пересечение
             if (intersect != 0)
             {
                 normal = Scene.GetNormal(f.facePoints, this);
