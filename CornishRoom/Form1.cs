@@ -79,13 +79,13 @@ namespace CornishRoom
             room.faces[2].pen = new Pen(Color.Red);
             room.faces[3].pen = new Pen(Color.Blue);
             
-            Figure bigCube = new Cube(2.8f,new Material(0f, 0f, 0.1f, 0.7f, 1.5f), Type.Cube);
-            bigCube.Offset(-1.5f, 1.5f, -3.9f);//сдвиг по осям 
+            Figure bigCube = new Cube(4.8f,new Material(0f, 0f, 0.1f, 0.7f, 1.5f), Type.Cube);
+            bigCube.Offset(-1.5f, 1.5f, -3.9f);
             bigCube.SetPen(new Pen(Color.Magenta));
             
             //добавляем источники света
             Light l1 = new Light(new Point3D(0f, 2f, 4.9f), new Point3D(1f, 1f, 1f));//белый, посреди комнаты,как люстра
-
+            
             Scene scene = new Scene();
             scene.addFigure(room);
             scene.addFigure(bigCube);

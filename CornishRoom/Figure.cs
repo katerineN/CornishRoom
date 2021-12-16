@@ -93,8 +93,8 @@ namespace CornishRoom
             Point3D s = r.start - p0;
             float u = invDet * Point3D.Scalar(s, pVec);
             
-            //u > 1
-            if (u < 0 || u > det)
+            //тут я тупанула
+            if (u < 0 || u > 1)
                 return false;
             
             Point3D q = s * edge1;
@@ -135,7 +135,7 @@ namespace CornishRoom
                 //четырехугольная сторона
                 else if (face.facePoints.Count == 4)
                 {
-                    if (RayTriangleIntersection(r, points[face.facePoints[0]], points[face.facePoints[1]], points[face.facePoints[2]], out float t) && (intersect == 0 || t < intersect))
+                    if (RayTriangleIntersection(r, points[face.facePoints[0]], points[face.facePoints[1]], points[face.facePoints[3]], out float t) && (intersect == 0 || t < intersect))
                     {
                         intersect = t;
                         f = face;
@@ -190,12 +190,15 @@ namespace CornishRoom
             float[,] translationMatrix = new float[,] { { 1, 0, 0, 0 }, { 0, 1, 0, 0 }, { 0, 0, 1, 0 }, { offset_x, offset_y, offset_z, 1 } };
             return Form1.MultMatrix(transform_matrix, translationMatrix);
         }
-        
+
         public void Offset(float xs, float ys, float zs)
         {
             ApplyMatrix(ApplyOffset(GetMatrix(), xs, ys, zs));
         }
+        
+        
     }
+    
     
     public class Cube:Figure
     {

@@ -44,7 +44,7 @@ namespace CornishRoom
                 //находим нормали
                 Point3D normal = GetNormal(f.faces[0].facePoints, f);
                 Point3D center = GetCenter(f.faces[0].facePoints, f);
-                camera = center + normal * 11;
+                camera = center + normal;
             }
         }
     }
