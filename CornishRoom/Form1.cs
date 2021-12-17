@@ -98,9 +98,9 @@ namespace CornishRoom
             bigCube.SetPen(new Pen(Color.Aqua));
             
             //шарик
-            //Figure sphere = new Sphere(new Point3D(-2.5f, -2, 2.5f), 2.5f,
-              //  new Material(0.9f, 0.1f, 0.7f, 0.1f, new Point3D(0f, 0f, 0f), 1f),
-              //  Type.Sphere);
+            //Figure sphere = new Sphere(new Point3D(2.5f, -2, 2.5f), 2.5f,
+              // new Material(0.9f, 0f, 0f, 0.1f,  1f),
+              // Type.Sphere);
            //шар над кубом   
            //Figure sphere = new Sphere(new Point3D(2f, 1.5f, -1.5f), 1.5f,
              //   new Material(0f, 0f, 0.1f, 0.7f, 1.5f),
@@ -112,8 +112,8 @@ namespace CornishRoom
             sphere.SetPenSphere(new Pen(Color.Violet));
             
             //добавляем источники света
-            Light l1 = new Light(new Point3D(0f, 2f, 4.9f), new Point3D(1f, 1f, 1f));
-            //Light l1 = new Light(new Point3D(-1.2f, 4f, 4.9f), new Point3D(1f, 1f, 1f));
+            //Light l1 = new Light(new Point3D(0f, 2f, 4.9f), new Point3D(1f, 1f, 1f));
+            Light l1 = new Light(new Point3D(-1.2f, 4f, 4.9f), new Point3D(1f, 1f, 1f));
             
             Scene scene = new Scene();
             scene.addFigure(room);
